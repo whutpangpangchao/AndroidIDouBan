@@ -4,6 +4,7 @@ import com.example.idouban.movie.HotMoviesInfo;
 
 import retrofit2.Call;
 import retrofit2.http.GET;
+import retrofit2.http.Query;
 
 public interface IDoubbanService {
     String BASE_URL="http://api.douban.com/v2/";
