@@ -39,10 +39,10 @@ public class HomeActivity extends AppCompatActivity {
         });
 
         //Init Layout UI
-        ViewPager viewPager = (ViewPager) findViewById(R.id.douban_view_pager);
+        ViewPager viewPager =  findViewById(R.id.douban_view_pager);
         setupViewPager(viewPager);
 
-        TabLayout tabLayout = (TabLayout) findViewById(R.id.douban_sliding_tabs);
+        TabLayout tabLayout = findViewById(R.id.douban_sliding_tabs);
 
         if(tabLayout != null) {
             tabLayout.addTab(tabLayout.newTab());
