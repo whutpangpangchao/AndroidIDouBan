@@ -1,11 +1,9 @@
 package com.example.idouban.movie;
 
-import com.example.idouban.R;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
-import static com.example.idouban.R.string.subjects;
 
 public class HotMoviesInfo {
     /**
