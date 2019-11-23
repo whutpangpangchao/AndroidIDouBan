@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">IDouBan</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="action_settings">设置</string>
+    <string name="tab_movies_fragment">电影</string>
+    <string name="tab_books_fragment">书籍</string>
+</resources>
