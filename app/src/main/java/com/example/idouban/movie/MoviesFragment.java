@@ -20,57 +20,50 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.RatingBar;
 import android.widget.TextView;
 
+import com.example.idouban.HomeActivity;
 import com.example.idouban.R;
-import com.example.idouban.api.DoubanManager;
-import com.example.idouban.api.IDoubbanService;
+import com.example.idouban.beans.Movie;
 import com.squareup.picasso.Picasso;
 
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 import java.util.List;
 import java.util.ArrayList;
 
-import static android.content.ContentValues.TAG;
+import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * A simple {@link Fragment} subclass.
- */
-public class MoviesFragment extends Fragment {
+public class MoviesFragment extends Fragment implements MoviesContract.View{
+    private static final String TAG = MoviesFragment.class.getSimpleName();
+
     private List<Movie> mMovieList = new ArrayList<>();
+
     private RecyclerView mRecyclerView;
-    private MoviesAdapter mMoviesAdapter;
+
+    private MoviesAdapter mMovieAdapter;
+
+    private MoviesContract.Presenter mPresenter;
 
     public MoviesFragment() {
         // Required empty public constructor
     }
 
+    public static MoviesFragment newInstance(){
+        Log.e(HomeActivity.TAG, "MoviesFragment newInstance!");
+        return new MoviesFragment();
+    }
+
     @Override
-    public void onAttach(@NonNull Context context) {
+    public void onAttach(Context context) {
         super.onAttach(context);
-        Log.e(TAG, "onAttach: " + context.getClass().getSimpleName());
-        loadMovies(new Callback<HotMoviesInfo>() {
-            @Override
-            public void onResponse(Call<HotMoviesInfo> call, Response<HotMoviesInfo> response) {
-                Log.e(TAG, "onResponse: Thread.ID = " + Thread.currentThread().getId());
-                mMovieList = response.body().getMovies();
-                mMoviesAdapter.setData(mMovieList);
-                Log.e(TAG, "onResponse: size" + mMovieList.size());
-                for (Movie movie : mMovieList) {
-                    Log.e(TAG, "onResponse: " + movie.getTitle());
-                }
-            }
 
-            @Override
-            public void onFailure(Call<HotMoviesInfo> call, Throwable t) {
+        Log.e(HomeActivity.TAG, "MoviesFragment onAttach, presenter: " + mPresenter);
+        if(mPresenter != null) {
+            mPresenter.start();
+        }
 
-            }
-        });
     }
 
     @Override
@@ -78,50 +71,84 @@ public class MoviesFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_movies, container, false);
-        mRecyclerView = view.findViewById(R.id.recycler_hot_movies);
-        return view;
-    }
+        mRecyclerView = (RecyclerView) view.findViewById(R.id.recycler_hot_movies);
 
-    private void loadMovies(Callback<HotMoviesInfo> callback) {
-        IDoubbanService movieService = DoubanManager.createDoubanService();
-        movieService.searchHotMovies().enqueue(callback);
+        return view;
     }
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        if (mRecyclerView != null)
+
+        if (mRecyclerView != null) {
             mRecyclerView.setHasFixedSize(true);
-        final GridLayoutManager layoutManager = new GridLayoutManager(getActivity().getApplicationContext(), 2);
-        mRecyclerView.setLayoutManager(layoutManager);
-        mMoviesAdapter = new MoviesAdapter(getContext(), mMovieList, R.layout.recyclerview_movies_item);
-        mRecyclerView.setAdapter(mMoviesAdapter);
+
+            final GridLayoutManager layoutManager = new GridLayoutManager(getActivity().getApplicationContext(), 2);
+            mRecyclerView.setLayoutManager(layoutManager);
+
+            mMovieAdapter = new MoviesAdapter(getContext(), mMovieList, R.layout.recyclerview_movies_item);
+
+            mRecyclerView.setAdapter(mMovieAdapter);
+        }
+
     }
 
+    @Override
+    public void setPresenter(MoviesContract.Presenter presenter) {
+        mPresenter = presenter;
+    }
 
+    @Override
+    public void showMovies(List<Movie> movies) {
+        Log.e(HomeActivity.TAG,  TAG + " showMovies ");
+        mMovieAdapter.replaceData(movies);
+    }
 
+    @Override
+    public void showNoMovies() {
+
+    }
+
+    @Override
+    public void setLoadingIndicator(boolean active) {
+        if(getView() == null) return;
+
+        final ProgressBar progressBar = getView().findViewById(R.id.pgb_loading);
+
+        Log.e(HomeActivity.TAG, "\n\n setLoadingIndicator: active " + active);
+
+        if(active) {
+            progressBar.setVisibility(View.VISIBLE);
+        }else {
+            progressBar.setVisibility(View.GONE);
+        }
+    }
+
+    //Movie's Adapter and view holder
     static class MoviesAdapter extends RecyclerView.Adapter<MoviesViewHolder> {
+
         private List<Movie> movies;
         private Context context;
+
         @LayoutRes
         private int layoutResId;
 
-        public MoviesAdapter(Context context, @Nullable List<Movie> movies, @LayoutRes int layoutResId) {
-            this.context = context;
-            this.movies = movies;
+        public MoviesAdapter(Context context, @NonNull List<Movie> movies, @LayoutRes int layoutResId) {
+            setList(movies);
             this.layoutResId = layoutResId;
+            this.context = context;
         }
 
-        @NonNull
         @Override
-        public MoviesViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        public MoviesViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View itemView = LayoutInflater.from(context).inflate(layoutResId, parent, false);
             return new MoviesViewHolder(itemView);
         }
 
         @Override
-        public void onBindViewHolder(@NonNull MoviesViewHolder holder, int position) {
+        public void onBindViewHolder(MoviesViewHolder holder, int position) {
             if (holder == null) return;
+
             holder.updateMovie(movies.get(position));
         }
 
@@ -130,16 +157,18 @@ public class MoviesFragment extends Fragment {
             return movies.size();
         }
 
-        public void setData(List<Movie> movies) {
-            this.movies = movies;
+        private void setList(List<Movie> movies) {
+            this.movies =  checkNotNull(movies);
+        }
+
+        public void replaceData(List<Movie> movies) {
+            setList(movies);
             notifyDataSetChanged();
         }
     }
 
-
-
-
     static class MoviesViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+
         ImageView mMovieImage;
         TextView mMovieTitle;
         RatingBar mMovieStars;
@@ -148,30 +177,13 @@ public class MoviesFragment extends Fragment {
 
         public MoviesViewHolder(View itemView) {
             super(itemView);
+
             mMovieImage = itemView.findViewById(R.id.movie_cover);
             mMovieTitle = itemView.findViewById(R.id.movie_title);
             mMovieStars = itemView.findViewById(R.id.rating_star);
             mMovieRatingAverage = itemView.findViewById(R.id.movie_average);
+
             itemView.setOnClickListener(this);
-        }
-
-        @Override
-        public void onClick(View v) {
-            Log.e(TAG, "=> onClick ... Item");
-            if (movie == null) return;
-            if (itemView == null) return;
-            Context context = itemView.getContext();
-            if (context == null) return;
-            Intent intent = new Intent(context, MovieDetailActivity.class);
-            intent.putExtra("movie", movie);
-            if (context instanceof Activity) {
-                Activity activity = (Activity) context;
-                Bundle bundle = ActivityOptionsCompat.makeSceneTransitionAnimation(activity, mMovieImage, "cover").toBundle();
-                ActivityCompat.startActivity(activity, intent, bundle);
-
-            }
-
-
         }
 
         public void updateMovie(Movie movie) {
@@ -179,10 +191,12 @@ public class MoviesFragment extends Fragment {
             this.movie = movie;
 
             Context context = itemView.getContext();
+
             Picasso.with(context)
                     .load(movie.getImages().getLarge())
                     .placeholder(context.getResources().getDrawable(R.mipmap.ic_launcher))
                     .into(mMovieImage);
+
             mMovieTitle.setText(movie.getTitle());
             final double average = movie.getRating().getAverage();
             if (average == 0.0) {
@@ -193,6 +207,27 @@ public class MoviesFragment extends Fragment {
                 mMovieRatingAverage.setText(String.valueOf(average));
                 mMovieStars.setStepSize(0.5f);
                 mMovieStars.setRating((float) (movie.getRating().getAverage() / 2));
+            }
+        }
+
+        @Override
+        public void onClick(View v) {
+            Log.e(HomeActivity.TAG, "==> onClick....Item");
+
+            if (movie == null) return;
+            if (itemView == null) return;
+
+            Context context = itemView.getContext();
+            if (context == null) return;
+
+            Intent intent = new Intent(context, MovieDetailActivity.class);
+            intent.putExtra("movie", movie);
+
+            if (context instanceof Activity) {
+                Activity activity = (Activity) context;
+
+                Bundle bundle = ActivityOptionsCompat.makeSceneTransitionAnimation(activity, mMovieImage, "cover").toBundle();
+                //ActivityCompat.startActivity(activity, intent, bundle);
             }
         }
     }

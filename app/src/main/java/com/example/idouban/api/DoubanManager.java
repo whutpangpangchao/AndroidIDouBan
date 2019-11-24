@@ -19,6 +19,7 @@ public class DoubanManager {
         HttpLoggingInterceptor logging= new HttpLoggingInterceptor();
         logging.setLevel(HttpLoggingInterceptor.Level.BODY);
         httpClient= new OkHttpClient.Builder().addInterceptor(logging).build();
+
         return new Retrofit.Builder().baseUrl(IDoubbanService.BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(httpClient)

@@ -8,12 +8,16 @@ import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.example.idouban.api.DoubanManager;
 import com.example.idouban.book.BooksFragment;
+import com.example.idouban.movie.MoviesContract;
 import com.example.idouban.movie.MoviesFragment;
+import com.example.idouban.movie.MoviesPresenter;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayout;
@@ -22,6 +26,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HomeActivity extends AppCompatActivity {
+
+    public static final String TAG = "HomeActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,11 +59,17 @@ public class HomeActivity extends AppCompatActivity {
 
     private void setupViewPager(ViewPager viewPager){
         DoubanPagerAdapter pagerAdapter = new DoubanPagerAdapter(getSupportFragmentManager());
-        pagerAdapter.addFragment(new MoviesFragment(), getApplicationContext().getResources().getString(R.string.tab_movies_fragment));
+        MoviesFragment moviesFragment = MoviesFragment.newInstance();
+        Log.e(TAG, "setupViewPager, moviesFragment = " + moviesFragment);
+        pagerAdapter.addFragment(moviesFragment, getApplicationContext().getResources().getString(R.string.tab_movies_fragment));
         pagerAdapter.addFragment(new BooksFragment(), getApplicationContext().getResources().getString(R.string.tab_books_fragment));
         viewPager.setAdapter(pagerAdapter);
+        createPresenter(moviesFragment);
     }
-
+    private void createPresenter(MoviesContract.View fragmentView){
+        Log.e(TAG, "createPresenter,fragmentView = "+fragmentView);
+        new MoviesPresenter(DoubanManager.createDoubanService(),fragmentView);
+    }
 
     static class DoubanPagerAdapter extends FragmentPagerAdapter {
         private final List<Fragment> mFragments = new ArrayList<>();

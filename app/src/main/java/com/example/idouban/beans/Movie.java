@@ -1,8 +1,11 @@
-package com.example.idouban.movie;
+package com.example.idouban.beans;
 
 import java.io.Serializable;
 import java.util.List;
 
+/**
+ * Created by Johnny Tam on 2017/4/26.
+ */
 
 public class Movie implements Serializable {
 
@@ -20,6 +23,7 @@ public class Movie implements Serializable {
      * alt : https://movie.douban.com/subject/26260853/
      * id : 26260853
      */
+
     private RatingBean rating;
     private String title;
     private int collect_count;
