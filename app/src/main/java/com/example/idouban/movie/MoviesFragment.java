@@ -1,6 +1,4 @@
 package com.example.idouban.movie;
-
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -27,6 +25,7 @@ import android.widget.TextView;
 import com.example.idouban.HomeActivity;
 import com.example.idouban.R;
 import com.example.idouban.beans.Movie;
+import com.example.idouban.moviedetail.MovieDetailActivity;
 import com.squareup.picasso.Picasso;
 
 
@@ -148,7 +147,6 @@ public class MoviesFragment extends Fragment implements MoviesContract.View{
         @Override
         public void onBindViewHolder(MoviesViewHolder holder, int position) {
             if (holder == null) return;
-
             holder.updateMovie(movies.get(position));
         }
 
@@ -227,7 +225,7 @@ public class MoviesFragment extends Fragment implements MoviesContract.View{
                 Activity activity = (Activity) context;
 
                 Bundle bundle = ActivityOptionsCompat.makeSceneTransitionAnimation(activity, mMovieImage, "cover").toBundle();
-                //ActivityCompat.startActivity(activity, intent, bundle);
+                ActivityCompat.startActivity(activity, intent, bundle);
             }
         }
     }

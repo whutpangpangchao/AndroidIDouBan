@@ -96,7 +96,6 @@ public class Movie implements Serializable {
     public String getAlt() {
         return alt;
     }
-
     public void setAlt(String alt) {
         this.alt = alt;
     }

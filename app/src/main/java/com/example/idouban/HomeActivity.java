@@ -61,8 +61,8 @@ public class HomeActivity extends AppCompatActivity {
         DoubanPagerAdapter pagerAdapter = new DoubanPagerAdapter(getSupportFragmentManager());
         MoviesFragment moviesFragment = MoviesFragment.newInstance();
         Log.e(TAG, "setupViewPager, moviesFragment = " + moviesFragment);
-        pagerAdapter.addFragment(moviesFragment, getApplicationContext().getResources().getString(R.string.tab_movies_fragment));
-        pagerAdapter.addFragment(new BooksFragment(), getApplicationContext().getResources().getString(R.string.tab_books_fragment));
+        pagerAdapter.addFragment(moviesFragment, "电影");
+        pagerAdapter.addFragment(new BooksFragment(),"书籍");
         viewPager.setAdapter(pagerAdapter);
         createPresenter(moviesFragment);
     }
