@@ -12,7 +12,7 @@
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
         <com.google.android.material.appbar.CollapsingToolbarLayout
-            android:id="@+id/movie_collapsing_toolbar"
+            android:id="@+id/book_collapsing_toolbar"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:fitsSystemWindows="true"
@@ -21,7 +21,7 @@
             app:layout_scrollFlags="scroll|exitUntilCollapsed">
 
             <ImageView
-                android:id="@+id/movie_image"
+                android:id="@+id/book_image"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:fitsSystemWindows="true"
@@ -31,7 +31,7 @@
                 app:layout_collapseParallaxMultiplier="0.7" />
 
             <androidx.appcompat.widget.Toolbar
-                android:id="@+id/movie_toolbar"
+                android:id="@+id/book_toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 app:layout_collapseMode="pin"
@@ -48,14 +48,14 @@
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <com.google.android.material.tabs.TabLayout
-            android:id="@+id/movie_sliding_tabs"
+            android:id="@+id/book_sliding_tabs"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:tabGravity="fill"
             app:tabMode="fixed" />
 
         <androidx.viewpager.widget.ViewPager
-            android:id="@+id/movie_viewpager"
+            android:id="@+id/book_viewpager"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
     </LinearLayout>

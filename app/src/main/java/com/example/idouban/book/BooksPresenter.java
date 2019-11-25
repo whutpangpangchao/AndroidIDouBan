@@ -20,7 +20,7 @@ public class BooksPresenter implements BooksContract.Presenter {
     private BooksContract.View mBookView;
     private final IDoubbanService mIDoubbanService;
     private boolean mFirstLoad = true;
-
+   //TODO 初始化Presenter
     public BooksPresenter(@NonNull IDoubbanService booksService, @NonNull BooksContract.View bookFragment) {
         mIDoubbanService = booksService;
         mBookView = bookFragment;
@@ -33,6 +33,7 @@ public class BooksPresenter implements BooksContract.Presenter {
         mFirstLoad = false;
     }
 
+    // TODO: 加载更多的书籍信息
     @Override
     public void loadMoreBooks(int start) {
         mIDoubbanService.searchBooks("黑客与画家", start).enqueue(new Callback<BooksInfo>() {
@@ -56,6 +57,7 @@ public class BooksPresenter implements BooksContract.Presenter {
         loadRefreshedBooks(false);
     }
 
+    // TODO: 网络请求获取书籍信息
     private void loadBooks(boolean forceUpdate, final boolean showLoadingUI) {
         if (showLoadingUI) {
             mBookView.setRefreshedIndicator(true);
@@ -85,6 +87,7 @@ public class BooksPresenter implements BooksContract.Presenter {
         }
     }
 
+    // TODO: 展示书籍信息
     private void processBooks(List<Book> books) {
         if (books.isEmpty()) {
             processEmptyTasks();
@@ -96,12 +99,12 @@ public class BooksPresenter implements BooksContract.Presenter {
     private void processEmptyTasks() {
         mBookView.showNoBooks();
     }
-
+    //TODO: 用于处理加载更多书籍信息
     private void processLoadMoreBooks(List<Book> books) {
         if (books.isEmpty()) processLoadMoreEmptyBooks();
         else mBookView.showLoadedMoreBooks(books);
     }
-
+    //TODO: 用于处理加载更多书籍信息时，书籍信息为空的情况
     private void processLoadMoreEmptyBooks() {
         Log.e(TAG, "Loading Empty books");
         mBookView.showNoLoadedMoreBooks();
