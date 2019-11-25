@@ -40,10 +40,10 @@ public class MovieDetailActivity extends AppCompatActivity implements MovieDetai
         new MovieDetailPresenter((Movie) getIntent().getSerializableExtra(ConstContent.INTENT_EXTRA_MOVIE), this);
 
         //setup view pager
-        ViewPager viewPager = (ViewPager) findViewById(R.id.movie_viewpager);
+        ViewPager viewPager =  findViewById(R.id.movie_viewpager);
         setupViewPager(viewPager);
 
-        TabLayout tabLayout = (TabLayout) findViewById(R.id.movie_sliding_tabs);
+        TabLayout tabLayout =  findViewById(R.id.movie_sliding_tabs);
         if (tabLayout != null) {
             tabLayout.addTab(tabLayout.newTab());
             tabLayout.addTab(tabLayout.newTab());
@@ -78,13 +78,13 @@ public class MovieDetailActivity extends AppCompatActivity implements MovieDetai
 
     @Override
     public void showCollapsingToolbarTitle(String title) {
-        CollapsingToolbarLayout collapsingToolbar = (CollapsingToolbarLayout) findViewById(R.id.movie_collapsing_toolbar);
+        CollapsingToolbarLayout collapsingToolbar = findViewById(R.id.movie_collapsing_toolbar);
         collapsingToolbar.setTitle(title);
     }
 
     @Override
     public void showPicassoImage(String largeImagePath) {
-        ImageView movieImage = (ImageView) findViewById(R.id.movie_image);
+        ImageView movieImage =  findViewById(R.id.movie_image);
         Picasso.with(movieImage.getContext())
                 .load(largeImagePath)
                 .into(movieImage);

@@ -14,7 +14,10 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.example.idouban.api.DoubanManager;
+import com.example.idouban.beans.Book;
+import com.example.idouban.book.BooksContract;
 import com.example.idouban.book.BooksFragment;
+import com.example.idouban.book.BooksPresenter;
 import com.example.idouban.movie.MoviesContract;
 import com.example.idouban.movie.MoviesFragment;
 import com.example.idouban.movie.MoviesPresenter;
@@ -60,15 +63,19 @@ public class HomeActivity extends AppCompatActivity {
     private void setupViewPager(ViewPager viewPager){
         DoubanPagerAdapter pagerAdapter = new DoubanPagerAdapter(getSupportFragmentManager());
         MoviesFragment moviesFragment = MoviesFragment.newInstance();
+        BooksFragment booksFragment=BooksFragment.newInstance();
         Log.e(TAG, "setupViewPager, moviesFragment = " + moviesFragment);
+        Log.e(TAG, "setupViewPager, bookFragment = " + booksFragment);
         pagerAdapter.addFragment(moviesFragment, "电影");
-        pagerAdapter.addFragment(new BooksFragment(),"书籍");
+        pagerAdapter.addFragment(booksFragment,"书籍");
         viewPager.setAdapter(pagerAdapter);
-        createPresenter(moviesFragment);
+        createPresenter(moviesFragment,booksFragment);
     }
-    private void createPresenter(MoviesContract.View fragmentView){
-        Log.e(TAG, "createPresenter,fragmentView = "+fragmentView);
-        new MoviesPresenter(DoubanManager.createDoubanService(),fragmentView);
+    private void createPresenter(MoviesContract.View moviesFragment, BooksContract.View booksFragment){
+        Log.e(TAG, "createPresenter,fragmentView = "+moviesFragment);
+        Log.e(TAG, "createPresenter,fragmentView = "+booksFragment);
+        MoviesPresenter moviesPresenter=new MoviesPresenter(DoubanManager.createDoubanService(),moviesFragment);
+        BooksPresenter booksPresenter=new BooksPresenter(DoubanManager.createDoubanService(),booksFragment);
     }
 
     static class DoubanPagerAdapter extends FragmentPagerAdapter {

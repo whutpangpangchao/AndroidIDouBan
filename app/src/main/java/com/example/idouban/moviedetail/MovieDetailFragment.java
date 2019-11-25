@@ -1,5 +1,6 @@
 package com.example.idouban.moviedetail;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -20,6 +21,12 @@ import static com.example.idouban.HomeActivity.TAG;
 
 public class MovieDetailFragment  extends Fragment implements View.OnClickListener {
     private String mUrl;
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+    }
+
     public MovieDetailFragment(){}
     public static MovieDetailFragment createInstance(String info,int type){
         MovieDetailFragment movieDetailFragment=new MovieDetailFragment();
@@ -40,6 +47,11 @@ public class MovieDetailFragment  extends Fragment implements View.OnClickListen
                 break;
                 default:break;
         }
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
     }
 
     @Nullable
