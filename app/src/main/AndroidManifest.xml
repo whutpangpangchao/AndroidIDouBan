@@ -11,16 +11,21 @@
         android:networkSecurityConfig="@xml/network_security_config"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme.NoActionBar">
-        <activity android:name=".bookdetail.BookDetailActivity"></activity>
+        android:theme="@style/AppTheme">
+        <activity
+            android:name=".bookdetail.BookDetailActivity"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
         <activity
             android:name=".moviedetail.MovieDetailActivity"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".moviewebsite.WebViewActivity" />
-        <activity android:name=".HomeActivity">
+        <activity
+            android:name=".moviewebsite.WebViewActivity"
+            android:theme="@style/WebsiteActivityNoActionBar" />
+        <activity
+            android:name=".HomeActivity"
+            android:theme="@style/AppTheme.NoActionBarMain">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

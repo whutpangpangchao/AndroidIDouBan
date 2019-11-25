@@ -1,7 +1,6 @@
 package com.example.idouban.bookdetail;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
