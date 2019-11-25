@@ -3,7 +3,9 @@ package com.example.idouban.movie;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
 
+import com.example.idouban.HomeActivity;
 import com.example.idouban.api.IDoubbanService;
 import com.example.idouban.beans.HotMoviesInfo;
 import com.example.idouban.beans.Movie;
@@ -22,6 +24,8 @@ public class MoviesPresenter implements MoviesContract.Presenter{
     private final MoviesContract.View mMoviesView;
     private final IDoubbanService mIDuobanService;
     private boolean mFirstLoad=true;
+    private int mMovieTotal;
+    private Call<HotMoviesInfo> mMoviesRetrofitCallback;
 
     public MoviesPresenter(@NonNull IDoubbanService moviesService,@NonNull MoviesContract.View moviesView){
         mIDuobanService=checkNotNull(moviesService,"IDoubanServie cannot be null!");
@@ -30,35 +34,27 @@ public class MoviesPresenter implements MoviesContract.Presenter{
         mMoviesView.setPresenter(this);
     }
 
-    @Override
-    public void loadMovies(boolean forceUpdate) {
-        Log.e(TAG, "loadMovies:");
-        loadMovies(forceUpdate||mFirstLoad,true);
-        mFirstLoad=false;
-    }
-
     private void loadMovies(boolean forceUpdate, final boolean showLoadingUI){
         Log.e(TAG, "loadMovies: "+"forceUpdate");
         if(showLoadingUI){
             //MoviesFragment需要显示Loading 界面
-            mMoviesView.setLoadingIndicator(true);
+            mMoviesView.setRefreshedIndicator(true);
         }
         if(forceUpdate){
            // Log.e(TAG, "loadMovies: "+"forceUpdate");
-            mIDuobanService.searchHotMovies().enqueue(new Callback<HotMoviesInfo>() {
+            mMoviesRetrofitCallback =mIDuobanService.searchHotMovies(0);
+            mMoviesRetrofitCallback.enqueue(new Callback<HotMoviesInfo>() {
                 @Override
                 public void onResponse(Call<HotMoviesInfo> call, Response<HotMoviesInfo> response) {
                     Log.d(TAG, "===> onResponse: Thread.Id = " + Thread.currentThread().getId());
                     List<Movie> moviesList = response.body().getMovies();
-                    for (Movie movie :moviesList){
-                        Log.d(TAG, "===> onResponse: Thread.Id = " +movie.getTitle());
-                    }
+                    mMovieTotal=response.body().getTotal();
                     //debug
                     Log.e(TAG, "===> Response, size = " + moviesList.size()
                             + " showLoadingUI: " + showLoadingUI);
                     //获取数据成功，Loading UI消失
                     if(showLoadingUI) {
-                        mMoviesView.setLoadingIndicator(false);
+                        mMoviesView.setRefreshedIndicator(false);
                     }
                     processMovies(moviesList);
                 }
@@ -70,9 +66,9 @@ public class MoviesPresenter implements MoviesContract.Presenter{
 
                     //获取数据成功，Loading UI消失
                     if(showLoadingUI) {
-                        mMoviesView.setLoadingIndicator(false);
+                        mMoviesView.setRefreshedIndicator(false);
                     }
-                    //mMoviesView.showLoadingMoviesError();
+                   processEmptyTasks();
                 }
             });
         }
@@ -80,17 +76,69 @@ public class MoviesPresenter implements MoviesContract.Presenter{
     }
 
     @Override
-    public void start() {
-        loadMovies(false);
+    public void start() {loadRefreshedMovies(false);
     }
     private void processMovies( List<Movie> movies){
         if(movies.isEmpty()){
             processEmptyTasks();
         }else {
-            mMoviesView.showMovies(movies);
+            mMoviesView.showRefreshedMovies(movies);
         }
     }
     private void processEmptyTasks(){
         mMoviesView.showNoMovies();
+    }
+
+    @Override
+    public void loadRefreshedMovies(boolean forceUpdate) {
+        loadMovies(forceUpdate||mFirstLoad,true);
+        mFirstLoad=false;
+
+    }
+
+    @Override
+    public void loadMoreMovies(int movieStartIndex) {
+        Log.e(TAG, "movieStartIndex: "+movieStartIndex+",mMovieTotal: "+mMovieTotal);
+        if (movieStartIndex>=mMovieTotal){
+           processLoadMoreEmptyMovies();
+            return;
+        }
+        mMoviesRetrofitCallback = mIDuobanService.searchHotMovies(movieStartIndex);
+        mMoviesRetrofitCallback.enqueue(new Callback<HotMoviesInfo>() {
+            @Override
+            public void onResponse(Call<HotMoviesInfo> call, Response<HotMoviesInfo> response) {
+                Log.d(HomeActivity.TAG, "===> onResponse: Thread.Id = " + Thread.currentThread().getId());
+                List<Movie> moreMoviesList = response.body().getMovies();
+                //debug
+                Log.e(HomeActivity.TAG, "===> Response, size = " + moreMoviesList.size());
+                processLoadMoreMovies(moreMoviesList);
+            }
+
+            @Override
+            public void onFailure(Call<HotMoviesInfo> call, Throwable t) {
+                Log.d(HomeActivity.TAG, "===> onFailure: Thread.Id = "
+                        + Thread.currentThread().getId() + ", Error: " + t.getMessage());
+                processLoadMoreEmptyMovies();
+            }
+        });
+
+
+    }
+
+    @Override
+    public void cancelRetrofitRequest() {
+        Log.e(TAG, "=> cancelRetrofitRequest() isCanceled = "+mMoviesRetrofitCallback.isCanceled());
+        if (!mMoviesRetrofitCallback.isCanceled())mMoviesRetrofitCallback.cancel();
+
+    }
+    private void processLoadMoreEmptyMovies() {
+        mMoviesView.showNoLoadedMoreMovies();
+    }
+    private void processLoadMoreMovies(List<Movie> movies) {
+        if(movies.isEmpty()) {
+            processLoadMoreEmptyMovies();
+        }else {
+            mMoviesView.showLoadedMoreMovies(movies);
+        }
     }
 }

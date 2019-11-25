@@ -63,8 +63,8 @@ public class HomeActivity extends AppCompatActivity {
         BooksFragment booksFragment=BooksFragment.newInstance();
         Log.e(TAG, "setupViewPager, moviesFragment = " + moviesFragment);
         Log.e(TAG, "setupViewPager, bookFragment = " + booksFragment);
-        pagerAdapter.addFragment(moviesFragment, "电影");
         pagerAdapter.addFragment(booksFragment,"书籍");
+        pagerAdapter.addFragment(moviesFragment, "电影");
         viewPager.setAdapter(pagerAdapter);
         createPresenter(moviesFragment,booksFragment);
     }

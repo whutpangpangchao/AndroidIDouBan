@@ -1,8 +1,18 @@
 package com.example.idouban.movie;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.RatingBar;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
@@ -13,43 +23,39 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
-import android.widget.RatingBar;
-import android.widget.TextView;
-
+import com.aspsine.swipetoloadlayout.SwipeToLoadLayout;
 import com.example.idouban.HomeActivity;
 import com.example.idouban.R;
 import com.example.idouban.beans.Movie;
 import com.example.idouban.moviedetail.MovieDetailActivity;
 import com.squareup.picasso.Picasso;
 
-
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class MoviesFragment extends Fragment implements MoviesContract.View{
+public class MoviesFragment extends Fragment implements MoviesContract.View {
     private static final String TAG = MoviesFragment.class.getSimpleName();
 
-    private List<Movie> mMovieList = new ArrayList<>();
+    private List<Movie> mAdapterMoviesData;
 
-    private RecyclerView mRecyclerView;
+    private RecyclerView mMovieRecyclerView;
 
     private MoviesAdapter mMovieAdapter;
 
     private MoviesContract.Presenter mPresenter;
 
+    private View mNoMoviesView;
+
+    private SwipeToLoadLayout mSwipeToLoadLayout;
+
     public MoviesFragment() {
         // Required empty public constructor
     }
 
-    public static MoviesFragment newInstance(){
+    public static MoviesFragment newInstance() {
         Log.e(HomeActivity.TAG, "MoviesFragment newInstance!");
         return new MoviesFragment();
     }
@@ -59,18 +65,41 @@ public class MoviesFragment extends Fragment implements MoviesContract.View{
         super.onAttach(context);
 
         Log.e(HomeActivity.TAG, "MoviesFragment onAttach, presenter: " + mPresenter);
-        if(mPresenter != null) {
+        if (mPresenter != null) {
             mPresenter.start();
         }
 
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mMovieAdapter = new MoviesAdapter(new ArrayList<>(0), R.layout.recyclerview_movies_item);
+        mAdapterMoviesData = new ArrayList<>();
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_movies, container, false);
-        mRecyclerView = (RecyclerView) view.findViewById(R.id.recycler_hot_movies);
+        mMovieRecyclerView = view.findViewById(R.id.swipe_target);
+        mNoMoviesView = view.findViewById(R.id.ll_no_movies);
+        mSwipeToLoadLayout = view.findViewById(R.id.swipeToLoadLayout);
+        if (mMovieRecyclerView != null) {
+            mMovieRecyclerView.setHasFixedSize(true);
+
+            final GridLayoutManager layoutManager = new GridLayoutManager(getActivity().getApplicationContext(), 2);
+            mMovieRecyclerView.setLayoutManager(layoutManager);
+            mMovieRecyclerView.setAdapter(mMovieAdapter);
+            mSwipeToLoadLayout.setOnRefreshListener(() -> {
+                Log.e(TAG, "onCreateView: => onRefresh!");
+                mPresenter.loadRefreshedMovies(true);
+            });
+            mSwipeToLoadLayout.setOnLoadMoreListener(() -> {
+                Log.e(TAG, "onCreateView: => onLoadMore , item index is : " + mMovieAdapter.getItemCount());
+                mPresenter.loadMoreMovies(mMovieAdapter.getItemCount());
+            });
+        }
 
         return view;
     }
@@ -78,18 +107,9 @@ public class MoviesFragment extends Fragment implements MoviesContract.View{
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-
-        if (mRecyclerView != null) {
-            mRecyclerView.setHasFixedSize(true);
-
-            final GridLayoutManager layoutManager = new GridLayoutManager(getActivity().getApplicationContext(), 2);
-            mRecyclerView.setLayoutManager(layoutManager);
-
-            mMovieAdapter = new MoviesAdapter(getContext(), mMovieList, R.layout.recyclerview_movies_item);
-
-            mRecyclerView.setAdapter(mMovieAdapter);
+        if (mPresenter != null) {
+            mPresenter.start();
         }
-
     }
 
     @Override
@@ -97,50 +117,63 @@ public class MoviesFragment extends Fragment implements MoviesContract.View{
         mPresenter = presenter;
     }
 
+
     @Override
-    public void showMovies(List<Movie> movies) {
-        Log.e(HomeActivity.TAG,  TAG + " showMovies ");
-        mMovieAdapter.replaceData(movies);
+    public void showRefreshedMovies(List<Movie> movies) {
+        if (mAdapterMoviesData.size() != 0 && movies.get(0).getId().equals(mAdapterMoviesData.get(0).getId())) {
+            return;
+        }
+        mAdapterMoviesData.addAll(movies);
+        mMovieAdapter.replaceData(mAdapterMoviesData);
+        mMovieRecyclerView.setVisibility(View.VISIBLE);
+        mNoMoviesView.setVisibility(View.GONE);
+
+    }
+
+    @Override
+    public void showLoadedMoreMovies(List<Movie> movies) {
+        mAdapterMoviesData.addAll(movies);
+        mMovieAdapter.replaceData(mAdapterMoviesData);
+        mSwipeToLoadLayout.setLoadingMore(false);
     }
 
     @Override
     public void showNoMovies() {
-
+        mMovieRecyclerView.setVisibility(View.GONE);
+        mNoMoviesView.setVisibility(View.VISIBLE);
     }
 
     @Override
-    public void setLoadingIndicator(boolean active) {
-        if(getView() == null) return;
-
-        final ProgressBar progressBar = getView().findViewById(R.id.pgb_loading);
-
-        Log.e(HomeActivity.TAG, "\n\n setLoadingIndicator: active " + active);
-
-        if(active) {
-            progressBar.setVisibility(View.VISIBLE);
-        }else {
-            progressBar.setVisibility(View.GONE);
-        }
+    public void showNoLoadedMoreMovies() {
+        Toast.makeText(getActivity().getApplicationContext(),"No more content.....",Toast.LENGTH_SHORT).show();
+        mSwipeToLoadLayout.setLoadingMore(false);
     }
+
+    @Override
+    public void setRefreshedIndicator(boolean active) {
+        if (getView()==null)return;
+        Log.e(TAG, "setRefreshedIndicator: => loading indicator: "+active);
+        mSwipeToLoadLayout.post(()->mSwipeToLoadLayout.setRefreshing(active));
+
+    }
+
 
     //Movie's Adapter and view holder
     static class MoviesAdapter extends RecyclerView.Adapter<MoviesViewHolder> {
 
         private List<Movie> movies;
-        private Context context;
 
         @LayoutRes
         private int layoutResId;
 
-        public MoviesAdapter(Context context, @NonNull List<Movie> movies, @LayoutRes int layoutResId) {
+        public MoviesAdapter(@NonNull List<Movie> movies, @LayoutRes int layoutResId) {
             setList(movies);
             this.layoutResId = layoutResId;
-            this.context = context;
         }
 
         @Override
         public MoviesViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View itemView = LayoutInflater.from(context).inflate(layoutResId, parent, false);
+            View itemView = LayoutInflater.from(parent.getContext()).inflate(layoutResId, parent, false);
             return new MoviesViewHolder(itemView);
         }
 
@@ -156,7 +189,7 @@ public class MoviesFragment extends Fragment implements MoviesContract.View{
         }
 
         private void setList(List<Movie> movies) {
-            this.movies =  checkNotNull(movies);
+            this.movies = checkNotNull(movies);
         }
 
         public void replaceData(List<Movie> movies) {
@@ -230,4 +263,11 @@ public class MoviesFragment extends Fragment implements MoviesContract.View{
         }
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mAdapterMoviesData.clear();
+        mPresenter.cancelRetrofitRequest();
+        Log.e(TAG, "=> onDestroy()!!! ");
+    }
 }
