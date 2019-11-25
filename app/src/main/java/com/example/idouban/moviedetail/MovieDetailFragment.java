@@ -13,7 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import com.example.idouban.ConstContent;
+import com.example.idouban.utils.ConstContent;
 import com.example.idouban.R;
 import com.example.idouban.moviewebsite.WebViewActivity;
 

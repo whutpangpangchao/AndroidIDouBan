@@ -1,4 +1,4 @@
-package com.example.idouban;
+package com.example.idouban.utils;
 
 public final class ConstContent {
 

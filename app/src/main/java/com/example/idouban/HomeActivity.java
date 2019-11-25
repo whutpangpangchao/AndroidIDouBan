@@ -39,14 +39,9 @@ public class HomeActivity extends AppCompatActivity {
         Toolbar toolbar =  findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         FloatingActionButton fab =  findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
-
+        fab.setOnClickListener(view -> Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show());
+       // new Thread(() -> Log.e(TAG, "run: "+"this is a runnable"));
         //Init Layout UI
         ViewPager viewPager =  findViewById(R.id.douban_view_pager);
         setupViewPager(viewPager);

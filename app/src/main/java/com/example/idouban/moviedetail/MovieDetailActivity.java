@@ -10,7 +10,7 @@ import androidx.viewpager.widget.ViewPager;
 import android.os.Bundle;
 import android.widget.ImageView;
 
-import com.example.idouban.ConstContent;
+import com.example.idouban.utils.ConstContent;
 import com.example.idouban.R;
 import com.example.idouban.beans.Movie;
 import com.google.android.material.appbar.CollapsingToolbarLayout;

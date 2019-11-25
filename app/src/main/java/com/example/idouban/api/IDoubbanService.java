@@ -12,5 +12,5 @@ public interface IDoubbanService {
     @GET("movie/in_theaters?apikey=0df993c66c0c636e29ecbb5344252a4a")
     Call<HotMoviesInfo> searchHotMovies();
     @GET("book/search?apikey=0df993c66c0c636e29ecbb5344252a4a")
-    Call<BooksInfo>searchBooks(@Query("q") String name);
+    Call<BooksInfo>searchBooks(@Query("q") String name,@Query("start") int index);
 }
