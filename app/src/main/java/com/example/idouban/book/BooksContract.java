@@ -16,6 +16,7 @@ public interface BooksContract {
     interface Presenter extends BasePresenter{
        void loadRefreshedBooks(boolean forceUpdate);
        void loadMoreBooks(int start);
+       void cancelRetrofitRequest();
     }
 }
 

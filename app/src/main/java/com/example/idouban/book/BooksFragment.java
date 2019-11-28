@@ -13,8 +13,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.LayoutRes;
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
@@ -27,6 +25,9 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.idouban.HomeActivity;
 import com.example.idouban.R;
+import com.example.idouban.base.BaseFragment;
+import com.example.idouban.base.BaseRecycleViewAdapter;
+import com.example.idouban.base.BaseRecycleViewHolder;
 import com.example.idouban.beans.Book;
 import com.example.idouban.bookdetail.BookDetailActivity;
 import com.example.idouban.utils.ConstContent;
@@ -37,18 +38,15 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * A simple {@link Fragment} subclass.
  */
-public class BooksFragment extends Fragment implements BooksContract.View {
+public class BooksFragment extends BaseFragment<Book> implements BooksContract.View {
     private static final String TAG = BooksFragment.class.getSimpleName();
     private BooksContract.Presenter mPresenter;
-    private RecyclerView mBookRecyclerView;
     private View mNoBooksView;
-    private BookAdapter mBookAdapter;
-    private List<Book> mAdapterBooksData;
+    private ScrollChildSwipeRefreshLayout mSwipeRefreshLayout;
+    private EndlessRecyclerViewScrollListener mEndlessRecyclerViewScrollListener;
 
     public BooksFragment() {
         // Required empty public constructor
@@ -61,55 +59,66 @@ public class BooksFragment extends Fragment implements BooksContract.View {
     //TODO Fragment已经关联到Activity，这个时候 Activity已经传进来了， 获得Activity的传递的值就可以进行与activity的通信
     // ， 当然也可以使用getActivity(),前提是Fragment已经和宿主Activity关联，并且没有脱离，有且只调用一次。
     @Override
-    public void onAttach(@NonNull Context context) {
-        super.onAttach(context);
+    protected void initVariables() {
+        Log.e(TAG, "initVariables:  OnCreate() -> initVariables");
+        mAdapterData = new ArrayList<>();
+    }
+
+    @Override
+    protected void initRecycleView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        Log.e(TAG, "initRecycleView: " + "OnCreateView() -> initRecycleView");
+        mView = inflater.inflate(R.layout.fragment_books, container, false);
+        mSwipeRefreshLayout = mView.findViewById(R.id.book_refresh_layout);
+        mRecyclerView = mView.findViewById(R.id.recycler_books);
+        mNoBooksView = mView.findViewById(R.id.ll_no_books);
+
+        mRecyclerView.setHasFixedSize(true);
+        mLayoutManager = new LinearLayoutManager(getActivity().getApplicationContext());
+        mRecyclerView.setLayoutManager(mLayoutManager);
+        mRecyclerView.setAdapter(mAdapter);
+
+    }
+
+    @Override
+    protected void initRecycleViewAdapter() {
+        Log.e(TAG, "initRecycleViewAdapter: OnCreate() -> initRecycleViewAdapter");
+        mAdapter = new BaseRecycleViewAdapter<>(new ArrayList<>(0),
+                R.layout.recyclerview_book_item,
+                BookViewHolder::new
+        );
+    }
+
+    @Override
+    protected void initSwipeRefreshLayout() {
+        mSwipeRefreshLayout.setColorSchemeColors(
+                ContextCompat.getColor(getActivity(), R.color.colorPrimary),
+                ContextCompat.getColor(getActivity(), R.color.colorAccent),
+                ContextCompat.getColor(getActivity(), R.color.colorPrimaryDark)
+        );
+        mSwipeRefreshLayout.setScrollUpChild(mRecyclerView);
+        mSwipeRefreshLayout.setOnRefreshListener(() -> {
+            Log.e(HomeActivity.TAG, "\n\n onRefresh loadRefreshedBooks...");
+            mPresenter.loadRefreshedBooks(true);
+        });
+    }
+
+    @Override
+    protected void initEndlessScrollListener() {
+         mEndlessRecyclerViewScrollListener = new EndlessRecyclerViewScrollListener(mLayoutManager) {
+            @Override
+            public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
+                Log.e(TAG, "page: " + page + ", totalItemsCount: " + totalItemsCount);
+                mPresenter.loadMoreBooks(totalItemsCount);
+            }
+        };
+        mRecyclerView.addOnScrollListener(mEndlessRecyclerViewScrollListener);
+    }
+
+    @Override
+    protected void startPresenter() {
         if (mPresenter != null) {
             mPresenter.start();
         }
-    }
-
-    //TODO 初始化Fragment。可通过参数savedInstanceState获取之前保存的值。
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        mBookAdapter = new BookAdapter(new ArrayList<>(0), R.layout.recyclerview_book_item);
-        mAdapterBooksData = new ArrayList<>();
-    }
-
-    // TODO:初始化Fragment的布局。加载布局和findViewById的操作通常在此函数内完成，但是不建议执行耗时的操作。
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_books, container, false);
-        mBookRecyclerView = view.findViewById(R.id.recycler_books);
-        mNoBooksView = view.findViewById(R.id.ll_no_books);
-        if (mBookRecyclerView != null) {
-            mBookRecyclerView.setHasFixedSize(true);
-            final LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity().getApplicationContext());
-            mBookRecyclerView.setLayoutManager(layoutManager);
-            mBookRecyclerView.setAdapter(mBookAdapter);
-            final ScrollChildSwipeRefreshLayout swipeRefreshLayout = view.findViewById(R.id.book_refresh_layout);
-            swipeRefreshLayout.setColorSchemeColors(
-                    ContextCompat.getColor(getActivity(), R.color.colorPrimary),
-                    ContextCompat.getColor(getActivity(), R.color.colorAccent),
-                    ContextCompat.getColor(getActivity(), R.color.colorPrimaryDark)
-            );
-            swipeRefreshLayout.setScrollUpChild(mBookRecyclerView);
-            swipeRefreshLayout.setOnRefreshListener(() -> {
-                Log.e(HomeActivity.TAG, "\n\n onRefresh loadRefreshedBooks...");
-                mPresenter.loadRefreshedBooks(true);
-            });
-            EndlessRecyclerViewScrollListener endlessRecyclerViewScrollListener = new EndlessRecyclerViewScrollListener(layoutManager) {
-                @Override
-                public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
-                    Log.e(TAG, "page: " + page + ", totalItemsCount: " + totalItemsCount);
-                    mPresenter.loadMoreBooks(totalItemsCount);
-                }
-            };
-            mBookRecyclerView.addOnScrollListener(endlessRecyclerViewScrollListener);
-
-        }
-        return view;
     }
 
     // TODO: 2019/11/25  执行该方法时，与Fragment绑定的Activity的onCreate方法已经执行完成并返回，在该方法内可以进行与Activity交互的UI操作，
@@ -122,28 +131,31 @@ public class BooksFragment extends Fragment implements BooksContract.View {
         }
 
     }
+
     //TODO :展示刷新后的RecyclerView
     @Override
     public void showRefreshedBooks(List<Book> books) {
-        if (mAdapterBooksData.size() != 0 && books.get(0).getId().equals(mAdapterBooksData.get(0).getId())) {
+        if (mAdapterData.size() != 0 && books.get(0).getId().equals(mAdapterData.get(0).getId())) {
             return;
         }
-        mAdapterBooksData.addAll(books);
-        mBookAdapter.replaceData(mAdapterBooksData);
-        mBookRecyclerView.setVisibility(View.VISIBLE);
+        mAdapterData.addAll(books);
+        mAdapter.replaceData(mAdapterData);
+        mRecyclerView.setVisibility(View.VISIBLE);
         mNoBooksView.setVisibility(View.GONE);
     }
 
     @Override
     public void showLoadedMoreBooks(List<Book> books) {
-        mAdapterBooksData.addAll(books);
-        mBookAdapter.replaceData(mAdapterBooksData);
+        mAdapterData.addAll(books);
+        mAdapter.replaceData(mAdapterData);
+        mSwipeRefreshLayout.setRefreshing(false);
     }
 
     @Override
     public void showNoBooks() {
-        mBookRecyclerView.setVisibility(View.GONE);
+        mRecyclerView.setVisibility(View.GONE);
         mNoBooksView.setVisibility(View.VISIBLE);
+        mSwipeRefreshLayout.setRefreshing(false);
     }
 
     @Override
@@ -160,7 +172,6 @@ public class BooksFragment extends Fragment implements BooksContract.View {
             Log.e(HomeActivity.TAG, "swipeRefreshLayout run() active: " + active);
             swipeRefreshLayout.setRefreshing(active);
         });
-
     }
 
     @Override
@@ -168,53 +179,7 @@ public class BooksFragment extends Fragment implements BooksContract.View {
         mPresenter = presenter;
     }
 
-    static class BookAdapter extends RecyclerView.Adapter<BookViewHolder> {
-        // TODO RecyclerView 数据源集合
-        private List<Book> mBooks;
-        @LayoutRes
-        private int layoutResId;
-
-
-        public BookAdapter(@NonNull List<Book> books, @LayoutRes int layoutResId) {
-            // TODO 构造方法传入BookAdapter 数据源
-            setList(books);
-            this.layoutResId = layoutResId;
-        }
-
-        private void setList(List<Book> books) {
-            this.mBooks = checkNotNull(books);
-        }
-
-        @NonNull
-        @Override
-        public BookViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            //TODO 引入item布局对象得到View对象
-            //TODO 创建ViewHolder对象,传入View,最终return当前ViewHolder对象
-            View itemView = LayoutInflater.from(parent.getContext()).inflate(layoutResId, parent, false);
-            return new BookViewHolder(itemView);
-        }
-
-        @Override
-        public void onBindViewHolder(@NonNull BookViewHolder holder, int position) {
-            //TODO 通过position获取当前item数据给holder对象内的控件set操作
-            if (holder == null) return;
-            holder.updateBook(mBooks.get(position));
-
-        }
-
-        @Override
-        public int getItemCount() {
-            //TODO 数据源size
-            return mBooks.size();
-        }
-
-        public void replaceData(List<Book> books) {
-            setList(books);
-            notifyDataSetChanged();
-        }
-    }
-
-    static class BookViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    static class BookViewHolder extends BaseRecycleViewHolder<Book> implements View.OnClickListener {
         //TODO item内的子控件
         CardView cardView;
         ImageView bookImage;
@@ -224,7 +189,6 @@ public class BooksFragment extends Fragment implements BooksContract.View {
         TextView bookPubDate;
         TextView bookPages;
         TextView bookPrice;
-        Book book;
 
         public BookViewHolder(View itemView) {
             //TODO view.findViewById操作
@@ -241,13 +205,11 @@ public class BooksFragment extends Fragment implements BooksContract.View {
             itemView.setOnClickListener(this);
         }
 
-        public void updateBook(Book book) {
-
-            if (book == null) return;
-            this.book = book;
+        @Override
+        protected void onBindItem(Book book) {
 
             Context context = itemView.getContext();
-            if (context == null) return;
+            if (book == null || context == null) return;
 
             //get the prefix string
             String prefixSubTitle = context.getString(R.string.prefix_subtitle);
@@ -268,19 +230,21 @@ public class BooksFragment extends Fragment implements BooksContract.View {
                     .placeholder(context.getResources().getDrawable(R.mipmap.ic_launcher))
                     .into(bookImage);
 
+
         }
+
 
         @Override
         public void onClick(View v) {
             Log.e(HomeActivity.TAG, "==>Book onClick....Item");
 
-            if (book == null) return;
+            if (itemContent == null) return;
             if (itemView == null) return;
 
             Context context = itemView.getContext();
             if (context == null) return;
             Intent intent = new Intent(context, BookDetailActivity.class);
-            intent.putExtra(ConstContent.INTENT_EXTRA_BOOK, book);
+            intent.putExtra(ConstContent.INTENT_EXTRA_BOOK, itemContent);
 
             if (context instanceof Activity) {
                 Activity activity = (Activity) context;
@@ -289,5 +253,13 @@ public class BooksFragment extends Fragment implements BooksContract.View {
                 ActivityCompat.startActivity(activity, intent, bundle);
             }
         }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mAdapterData.clear();
+        mPresenter.cancelRetrofitRequest();
+        Log.e(HomeActivity.TAG, TAG + "=> onDestroy()!!!");
     }
 }

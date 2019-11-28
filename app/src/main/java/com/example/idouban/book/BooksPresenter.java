@@ -20,6 +20,7 @@ public class BooksPresenter implements BooksContract.Presenter {
     private BooksContract.View mBookView;
     private final IDoubbanService mIDoubbanService;
     private boolean mFirstLoad = true;
+    private Call<BooksInfo> mBooksRetrofitCallback;
    //TODO 初始化Presenter
     public BooksPresenter(@NonNull IDoubbanService booksService, @NonNull BooksContract.View bookFragment) {
         mIDoubbanService = booksService;
@@ -36,7 +37,8 @@ public class BooksPresenter implements BooksContract.Presenter {
     // TODO: 加载更多的书籍信息
     @Override
     public void loadMoreBooks(int start) {
-        mIDoubbanService.searchBooks("黑客与画家", start).enqueue(new Callback<BooksInfo>() {
+        mBooksRetrofitCallback=mIDoubbanService.searchBooks("黑客与画家", start);
+        mBooksRetrofitCallback.enqueue(new Callback<BooksInfo>() {
             @Override
             public void onResponse(Call<BooksInfo> call, Response<BooksInfo> response) {
                 List<Book> loadMoreList = response.body().getBooks();
@@ -50,6 +52,12 @@ public class BooksPresenter implements BooksContract.Presenter {
                 processLoadMoreEmptyBooks();
             }
         });
+    }
+
+    @Override
+    public void cancelRetrofitRequest() {
+        Log.e(TAG,  "=> cancelRetrofitRequest() isCanceled = " + mBooksRetrofitCallback.isCanceled());
+        if(!mBooksRetrofitCallback.isCanceled()) mBooksRetrofitCallback.cancel();
     }
 
     @Override
