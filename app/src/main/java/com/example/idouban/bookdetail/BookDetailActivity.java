@@ -5,13 +5,13 @@ import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
 import com.example.idouban.R;
+import com.example.idouban.base.BaseActivity;
 import com.example.idouban.beans.Book;
 import com.example.idouban.utils.ConstContent;
 import com.google.android.material.appbar.CollapsingToolbarLayout;
@@ -23,35 +23,44 @@ import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public class BookDetailActivity extends AppCompatActivity implements BookDetailContract.View {
+public class BookDetailActivity extends BaseActivity implements BookDetailContract.View {
     private static final String TAG = BookDetailActivity.class.getSimpleName();
     private BookDetailContract.Presenter mPresenter;
     private String mBookContext;
     private String mBookAuthor;
     private String mBookCatalog;
+    private ViewPager mViewPager;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_book_detail);
+    protected void initVariables() {
         new BookDetailPresenter((Book) getIntent().getSerializableExtra(ConstContent.INTENT_EXTRA_BOOK), this);
-        ViewPager viewPager = findViewById(R.id.book_viewpager);
-        setupViewPager(viewPager);
-        TabLayout tabLayout=findViewById(R.id.book_sliding_tabs);
-        if(tabLayout!=null){
-            tabLayout.addTab(tabLayout.newTab());
-            tabLayout.addTab(tabLayout.newTab());
-            tabLayout.addTab(tabLayout.newTab());
-            tabLayout.setupWithViewPager(viewPager);
-        }
-
     }
+
+    @Override
+    protected void initViews(Bundle savedInstanceState) {
+        setContentView(R.layout.activity_book_detail);
+        mViewPager = findViewById(R.id.book_viewpager);
+        setupViewPager(mViewPager);
+        initTab();
+    }
+
+    private void initTab() {
+        TabLayout tabLayout = findViewById(R.id.book_sliding_tabs);
+        if (tabLayout != null) {
+            tabLayout.addTab(tabLayout.newTab());
+            tabLayout.addTab(tabLayout.newTab());
+            tabLayout.addTab(tabLayout.newTab());
+            tabLayout.setupWithViewPager(mViewPager);
+        }
+    }
+
     @Override
     protected void onStart() {
         super.onStart();
         mPresenter.start();
 
     }
+
     private void setupViewPager(ViewPager viewPager) {
         mPresenter.loadBookContext();
         mPresenter.loadBookAuthor();
@@ -83,23 +92,23 @@ public class BookDetailActivity extends AppCompatActivity implements BookDetailC
     }
 
     @Override
-    public void setBookContextoFragment(String bookcontext) {
-        mBookContext = bookcontext;
+    public void setBookContextoFragment(String book_context) {
+        mBookContext = book_context;
     }
 
     @Override
-    public void setBookAuthortoFragment(String bookauthor) {
-        mBookAuthor = bookauthor;
+    public void setBookAuthortoFragment(String book_author) {
+        mBookAuthor = book_author;
     }
 
     @Override
-    public void setBookCatalogtoFragment(String bookcatalog) {
-        mBookCatalog = bookcatalog;
+    public void setBookCatalogtoFragment(String book_catalog) {
+        mBookCatalog = book_catalog;
     }
 
     @Override
     public void setPresenter(BookDetailContract.Presenter presenter) {
-        mPresenter=checkNotNull(presenter);
+        mPresenter = checkNotNull(presenter);
 
     }
 
@@ -107,11 +116,11 @@ public class BookDetailActivity extends AppCompatActivity implements BookDetailC
         private final List<Fragment> mFragments = new ArrayList<>();
         private final List<String> mFragmentTitles = new ArrayList<>();
 
-        public BookDetailPagerAdapter(FragmentManager fm) {
+        private BookDetailPagerAdapter(FragmentManager fm) {
             super(fm);
         }
 
-        public void addFragment(Fragment fragment, String title) {
+        private void addFragment(Fragment fragment, String title) {
             mFragments.add(fragment);
             mFragmentTitles.add(title);
         }
