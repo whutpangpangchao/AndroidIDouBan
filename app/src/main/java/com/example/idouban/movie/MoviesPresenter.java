@@ -53,6 +53,11 @@ public class MoviesPresenter implements MoviesContract.Presenter {
 //            Log.e(TAG, "observable: "+observable);
             mCompositeSubscription.add(mIDuobanService.searchHotMoviesWithRxJava(0)
                     .subscribeOn(Schedulers.io())
+                    .doOnSubscribe(()->{
+                        if (showLoadingUI){
+                            mMoviesView.setRefreshedIndicator(true);
+                        }
+                    })
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new Subscriber<HotMoviesInfo>() {
                         @Override

@@ -17,6 +17,7 @@ public interface BooksContract {
        void loadRefreshedBooks(boolean forceUpdate);
        void loadMoreBooks(int start);
        void cancelRetrofitRequest();
+       void unSubscribe();
     }
 }
 

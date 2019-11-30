@@ -38,6 +38,8 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 import java.util.List;
 
+import rx.subscriptions.CompositeSubscription;
+
 /**
  * A simple {@link Fragment} subclass.
  */
@@ -259,7 +261,8 @@ public class BooksFragment extends BaseFragment<Book> implements BooksContract.V
     public void onDestroy() {
         super.onDestroy();
         mAdapterData.clear();
-        mPresenter.cancelRetrofitRequest();
+//        mPresenter.cancelRetrofitRequest();
+        mPresenter.unSubscribe();
         Log.e(HomeActivity.TAG, TAG + "=> onDestroy()!!!");
     }
 }
