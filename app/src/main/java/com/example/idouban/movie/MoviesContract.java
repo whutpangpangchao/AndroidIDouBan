@@ -18,6 +18,7 @@ public interface MoviesContract {
         void loadRefreshedMovies(boolean forceUpdate);
         void loadMoreMovies(int movieStartIndex);
         void cancelRetrofitRequest();
+        void unSubscribe();
     }
 
 }

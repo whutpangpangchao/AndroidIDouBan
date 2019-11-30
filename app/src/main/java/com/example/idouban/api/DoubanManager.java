@@ -3,6 +3,7 @@ package com.example.idouban.api;
 import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
 import okhttp3.logging.HttpLoggingInterceptor;
+import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class DoubanManager {
@@ -21,6 +22,7 @@ public class DoubanManager {
         httpClient= new OkHttpClient.Builder().addInterceptor(logging).build();
 
         return new Retrofit.Builder().baseUrl(IDoubbanService.BASE_URL)
+                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(httpClient)
                 .build();

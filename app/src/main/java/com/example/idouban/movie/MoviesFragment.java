@@ -224,7 +224,8 @@ public class MoviesFragment extends BaseFragment<Movie> implements MoviesContrac
     public void onDestroy() {
         super.onDestroy();
        mAdapterData.clear();
-        mPresenter.cancelRetrofitRequest();
+//        mPresenter.cancelRetrofitRequest();
+        mPresenter.unSubscribe();
         Log.e(TAG, "=> onDestroy()!!! ");
     }
 }
