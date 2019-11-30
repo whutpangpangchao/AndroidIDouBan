@@ -5,10 +5,10 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 
 import com.example.idouban.HomeActivity;
-import com.example.idouban.api.DoubanManager;
 import com.example.idouban.api.IDoubbanService;
 import com.example.idouban.beans.HotMoviesInfo;
 import com.example.idouban.beans.Movie;
+import rx.subscriptions.CompositeSubscription;
 
 import java.util.List;
 
@@ -32,12 +32,14 @@ public class MoviesPresenter implements MoviesContract.Presenter {
     private int mMovieTotal;
     private Call<HotMoviesInfo> mMoviesRetrofitCallback;
     private Subscription mSubscription;
+    private CompositeSubscription mCompositeSubscription;
 
     public MoviesPresenter(@NonNull IDoubbanService moviesService, @NonNull MoviesContract.View moviesView) {
         mIDuobanService = checkNotNull(moviesService, "IDoubanServie cannot be null!");
         mMoviesView = checkNotNull(moviesView, "moviesView cannot be null");
         Log.e(TAG, "MoviesPresenter : " + ",MoviesPresenter:create" + this);
         mMoviesView.setPresenter(this);
+        mCompositeSubscription = new CompositeSubscription();
     }
 
     private void loadMovies(boolean forceUpdate, final boolean showLoadingUI) {
@@ -47,9 +49,10 @@ public class MoviesPresenter implements MoviesContract.Presenter {
             mMoviesView.setRefreshedIndicator(true);
         }
         if (forceUpdate) {
-            Observable<HotMoviesInfo> observable =mIDuobanService.searchHotMoviesWithRxJava(0);
-            Log.e(TAG, "observable: "+observable);
-            mSubscription=observable.subscribeOn(Schedulers.io())
+//            Observable<HotMoviesInfo> observable =mIDuobanService.searchHotMoviesWithRxJava(0);
+//            Log.e(TAG, "observable: "+observable);
+            mCompositeSubscription.add(mIDuobanService.searchHotMoviesWithRxJava(0)
+                    .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(new Subscriber<HotMoviesInfo>() {
                         @Override
@@ -82,7 +85,7 @@ public class MoviesPresenter implements MoviesContract.Presenter {
                             Log.e(TAG, "===> hotMoviesInfo, size = "+movieList.size()+" showLoadingUI: "+showLoadingUI+", total = "+mMovieTotal);
                             processMovies(movieList);
                         }
-                    });
+                    }));
         }
 
     }
@@ -118,8 +121,10 @@ public class MoviesPresenter implements MoviesContract.Presenter {
             processLoadMoreEmptyMovies();
             return;
         }
-        Observable<HotMoviesInfo> observable = DoubanManager.createDoubanService().searchHotMoviesWithRxJava(movieStartIndex);
-        observable.subscribeOn(Schedulers.io())
+//        Observable<HotMoviesInfo> observable = DoubanManager.createDoubanService().searchHotMoviesWithRxJava(movieStartIndex);
+
+        mCompositeSubscription.add(mIDuobanService.searchHotMoviesWithRxJava(movieStartIndex)
+                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<HotMoviesInfo>() {
                     @Override
@@ -140,7 +145,7 @@ public class MoviesPresenter implements MoviesContract.Presenter {
                         Log.e(HomeActivity.TAG, "===> hotMoviesInfo,size = " + moreMoviesList.size());
                         processLoadMoreMovies(moreMoviesList);
                     }
-                });
+                }));
     }
 
     @Override
@@ -154,9 +159,13 @@ public class MoviesPresenter implements MoviesContract.Presenter {
 
     @Override
     public void unSubscribe() {
-        Log.d(HomeActivity.TAG, TAG + "=> unSubscribe() isUnSubscribed = " + mSubscription.isUnsubscribed());
-        if (mSubscription != null && !mSubscription.isUnsubscribed()) {
-            mSubscription.unsubscribe();
+//        Log.d(HomeActivity.TAG, TAG + "=> unSubscribe() isUnSubscribed = " + mSubscription.isUnsubscribed());
+//        if (mSubscription != null && !mSubscription.isUnsubscribed()) {
+//            mSubscription.unsubscribe();
+//        }
+        Log.d(TAG, TAG+"=> unSubscribe all subscribe");
+        if(mCompositeSubscription!=null){
+            mCompositeSubscription.unsubscribe();
         }
 
     }
