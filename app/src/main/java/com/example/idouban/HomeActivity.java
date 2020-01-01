@@ -23,7 +23,9 @@ import androidx.viewpager.widget.ViewPager;
 import com.example.idouban.aboutme.AboutFragment;
 import com.example.idouban.api.DoubanManager;
 import com.example.idouban.base.BaseActivity;
+import com.example.idouban.blogs.BlogContract;
 import com.example.idouban.blogs.BlogFragment;
+import com.example.idouban.blogs.BlogPresenter;
 import com.example.idouban.book.BooksContract;
 import com.example.idouban.book.BooksFragment;
 import com.example.idouban.book.BooksPresenter;
@@ -66,6 +68,7 @@ public class HomeActivity extends BaseActivity {
         setupViewPager(mViewPager);
         initTabLayout();
         initOthersFragment();
+
     }
 
     private void initFAB() {
@@ -172,15 +175,24 @@ public class HomeActivity extends BaseActivity {
 
     }
 
-    private void initOthersFragment(){
+    private void initOthersFragment() {
+        //init blog fragment
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        BlogFragment blogFragment= new BlogFragment();
-        AboutFragment aboutFragment = new AboutFragment();
-        transaction.add(R.id.frame_container,blogFragment,ConstContent.MENU_BLOG);
-        transaction.add(R.id.frame_container,aboutFragment,ConstContent.MENU_ABOUT);
+        BlogFragment jianshuFragment = BlogFragment.newInstance();
+        AboutFragment aboutFragment = AboutFragment.newInstance();
+
+        transaction.add(R.id.frame_container, jianshuFragment, ConstContent.MENU_BLOG);
+        transaction.add(R.id.frame_container, aboutFragment, ConstContent.MENU_ABOUT);
         transaction.commit();
+
+        createOtherPresenter(jianshuFragment);
+
     }
 
+    private void createOtherPresenter(BlogContract.View blogFragment) {
+        Log.d(TAG, "createOtherPresenter");
+        new BlogPresenter(DoubanManager.createDoubanService(), blogFragment);
+    }
 
     private void initTabLayout() {
         TabLayout tabLayout = findViewById(R.id.douban_sliding_tabs);
@@ -262,4 +274,6 @@ public class HomeActivity extends BaseActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
+
 }
